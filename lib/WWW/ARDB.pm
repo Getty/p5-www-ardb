@@ -8,7 +8,7 @@ use JSON::MaybeXS qw( decode_json );
 use Carp qw( croak );
 use namespace::clean;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 our $DEBUG = $ENV{WWW_ARDB_DEBUG};
 
 use WWW::ARDB::Cache;

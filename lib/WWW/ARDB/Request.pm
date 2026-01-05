@@ -7,7 +7,7 @@ use HTTP::Request;
 use URI;
 use namespace::clean;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 use constant BASE_URL => 'https://ardb.app/api';
 

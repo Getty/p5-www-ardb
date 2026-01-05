@@ -6,7 +6,7 @@ use Moo;
 use MooX::Cmd;
 use JSON::MaybeXS;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 sub execute {
     my ($self, $args, $chain) = @_;
