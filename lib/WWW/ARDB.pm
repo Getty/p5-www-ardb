@@ -17,11 +17,61 @@ use WWW::ARDB::Result::Item;
 use WWW::ARDB::Result::Quest;
 use WWW::ARDB::Result::ArcEnemy;
 
+=head1 SYNOPSIS
+
+    use WWW::ARDB;
+
+    my $api = WWW::ARDB->new;
+
+    # Get all items
+    my $items = $api->items;
+    for my $item (@$items) {
+        printf "%s (%s) - %s\n", $item->name, $item->rarity // 'n/a', $item->type;
+    }
+
+    # Get specific item with full details
+    my $item = $api->item('acoustic_guitar');
+    print $item->description;
+
+    # Get all quests
+    my $quests = $api->quests;
+
+    # Get specific quest
+    my $quest = $api->quest('picking_up_the_pieces');
+    print $quest->title;
+
+    # Get all ARC enemies
+    my $enemies = $api->arc_enemies;
+
+    # Get specific enemy with drop table
+    my $enemy = $api->arc_enemy('wasp');
+    print $enemy->name;
+
+=head1 DESCRIPTION
+
+WWW::ARDB provides a Perl interface to the ARC Raiders Database API at L<https://ardb.app>.
+
+The API provides information about items, quests, and ARC enemies from the
+ARC Raiders game.
+
+B<Note:> Per the API documentation, you should store response data using your
+own storage solution and refresh it periodically. This module provides caching
+to help with that.
+
+=cut
+
 has ua => (
     is      => 'ro',
     lazy    => 1,
     builder => '_build_ua',
 );
+
+=attr ua
+
+The L<LWP::UserAgent> instance used for HTTP requests. Defaults to a new
+instance with 30 second timeout.
+
+=cut
 
 sub _build_ua {
     my $self = shift;
@@ -37,11 +87,23 @@ has request => (
     default => sub { WWW::ARDB::Request->new },
 );
 
+=attr request
+
+L<WWW::ARDB::Request> instance for building HTTP requests. Defaults to a new instance.
+
+=cut
+
 has cache => (
     is      => 'ro',
     lazy    => 1,
     builder => '_build_cache',
 );
+
+=attr cache
+
+L<WWW::ARDB::Cache> instance for caching API responses.
+
+=cut
 
 sub _build_cache {
     my $self = shift;
@@ -55,14 +117,34 @@ has use_cache => (
     default => 1,
 );
 
+=attr use_cache
+
+Boolean. Enable response caching. Defaults to C<1> (enabled).
+
+=cut
+
 has cache_dir => (
     is => 'ro',
 );
+
+=attr cache_dir
+
+Optional custom directory for cache files. If not specified, uses platform
+default (C<~/.cache/ardb> on Unix, C<%LOCALAPPDATA%/ardb> on Windows).
+
+=cut
 
 has debug => (
     is      => 'ro',
     default => sub { $DEBUG // 0 },
 );
+
+=attr debug
+
+Boolean. Enable debug output. Defaults to C<0>. Can also be set via
+C<$ENV{WWW_ARDB_DEBUG}>.
+
+=cut
 
 # Items
 
@@ -72,10 +154,26 @@ sub items {
     return $self->_to_objects($data, 'WWW::ARDB::Result::Item');
 }
 
+=method items
+
+    my $items = $api->items;
+
+Returns an ArrayRef of L<WWW::ARDB::Result::Item> objects for all items.
+
+=cut
+
 sub items_raw {
     my ($self, %params) = @_;
     return $self->_fetch('items', $self->request->items(%params), %params);
 }
+
+=method items_raw
+
+    my $data = $api->items_raw;
+
+Returns raw API response data structure for all items.
+
+=cut
 
 sub item {
     my ($self, $id, %params) = @_;
@@ -83,10 +181,27 @@ sub item {
     return $self->_to_object($data, 'WWW::ARDB::Result::Item');
 }
 
+=method item
+
+    my $item = $api->item('acoustic_guitar');
+
+Returns a single L<WWW::ARDB::Result::Item> with complete details including
+breakdown and crafting information.
+
+=cut
+
 sub item_raw {
     my ($self, $id, %params) = @_;
     return $self->_fetch("items/$id", $self->request->item($id, %params), %params);
 }
+
+=method item_raw
+
+    my $data = $api->item_raw('acoustic_guitar');
+
+Returns raw API response data structure for a specific item.
+
+=cut
 
 # Quests
 
@@ -96,10 +211,26 @@ sub quests {
     return $self->_to_objects($data, 'WWW::ARDB::Result::Quest');
 }
 
+=method quests
+
+    my $quests = $api->quests;
+
+Returns an ArrayRef of L<WWW::ARDB::Result::Quest> objects for all quests.
+
+=cut
+
 sub quests_raw {
     my ($self, %params) = @_;
     return $self->_fetch('quests', $self->request->quests(%params), %params);
 }
+
+=method quests_raw
+
+    my $data = $api->quests_raw;
+
+Returns raw API response data structure for all quests.
+
+=cut
 
 sub quest {
     my ($self, $id, %params) = @_;
@@ -107,10 +238,27 @@ sub quest {
     return $self->_to_object($data, 'WWW::ARDB::Result::Quest');
 }
 
+=method quest
+
+    my $quest = $api->quest('picking_up_the_pieces');
+
+Returns a single L<WWW::ARDB::Result::Quest> with complete details including
+objectives, rewards, and required items.
+
+=cut
+
 sub quest_raw {
     my ($self, $id, %params) = @_;
     return $self->_fetch("quests/$id", $self->request->quest($id, %params), %params);
 }
+
+=method quest_raw
+
+    my $data = $api->quest_raw('picking_up_the_pieces');
+
+Returns raw API response data structure for a specific quest.
+
+=cut
 
 # ARC Enemies
 
@@ -120,10 +268,26 @@ sub arc_enemies {
     return $self->_to_objects($data, 'WWW::ARDB::Result::ArcEnemy');
 }
 
+=method arc_enemies
+
+    my $enemies = $api->arc_enemies;
+
+Returns an ArrayRef of L<WWW::ARDB::Result::ArcEnemy> objects for all ARC enemies.
+
+=cut
+
 sub arc_enemies_raw {
     my ($self, %params) = @_;
     return $self->_fetch('arc-enemies', $self->request->arc_enemies(%params), %params);
 }
+
+=method arc_enemies_raw
+
+    my $data = $api->arc_enemies_raw;
+
+Returns raw API response data structure for all ARC enemies.
+
+=cut
 
 sub arc_enemy {
     my ($self, $id, %params) = @_;
@@ -131,10 +295,27 @@ sub arc_enemy {
     return $self->_to_object($data, 'WWW::ARDB::Result::ArcEnemy');
 }
 
+=method arc_enemy
+
+    my $enemy = $api->arc_enemy('wasp');
+
+Returns a single L<WWW::ARDB::Result::ArcEnemy> with complete details including
+drop table and related maps.
+
+=cut
+
 sub arc_enemy_raw {
     my ($self, $id, %params) = @_;
     return $self->_fetch("arc-enemies/$id", $self->request->arc_enemy($id, %params), %params);
 }
+
+=method arc_enemy_raw
+
+    my $data = $api->arc_enemy_raw('wasp');
+
+Returns raw API response data structure for a specific ARC enemy.
+
+=cut
 
 # Helper methods
 
@@ -148,10 +329,27 @@ sub find_item_by_name {
     return;
 }
 
+=method find_item_by_name
+
+    my $item = $api->find_item_by_name('Acoustic Guitar');
+
+Case-insensitive search for an item by name. Returns the first matching
+L<WWW::ARDB::Result::Item> or undef.
+
+=cut
+
 sub find_item_by_id {
     my ($self, $id) = @_;
     return $self->item($id);
 }
+
+=method find_item_by_id
+
+    my $item = $api->find_item_by_id('acoustic_guitar');
+
+Alias for C<item()>. Returns L<WWW::ARDB::Result::Item> or undef.
+
+=cut
 
 sub find_quest_by_title {
     my ($self, $title) = @_;
@@ -163,6 +361,15 @@ sub find_quest_by_title {
     return;
 }
 
+=method find_quest_by_title
+
+    my $quest = $api->find_quest_by_title('Picking Up The Pieces');
+
+Case-insensitive search for a quest by title. Returns the first matching
+L<WWW::ARDB::Result::Quest> or undef.
+
+=cut
+
 sub find_arc_enemy_by_name {
     my ($self, $name) = @_;
     my $enemies = $self->arc_enemies;
@@ -173,10 +380,29 @@ sub find_arc_enemy_by_name {
     return;
 }
 
+=method find_arc_enemy_by_name
+
+    my $enemy = $api->find_arc_enemy_by_name('Wasp');
+
+Case-insensitive search for an ARC enemy by name. Returns the first matching
+L<WWW::ARDB::Result::ArcEnemy> or undef.
+
+=cut
+
 sub clear_cache {
     my ($self, $endpoint) = @_;
     $self->cache->clear($endpoint);
 }
+
+=method clear_cache
+
+    $api->clear_cache('items');  # Clear specific endpoint
+    $api->clear_cache;           # Clear all cached data
+
+Clear cached API responses. If C<$endpoint> is provided, only clears cache
+for that endpoint (e.g., C<items>, C<quests>, C<arc-enemies>).
+
+=cut
 
 # Internal methods
 
@@ -227,150 +453,6 @@ sub _debug {
     warn "[WWW::ARDB] $msg\n";
 }
 
-1;
-
-__END__
-
-=head1 NAME
-
-WWW::ARDB - Perl client for the ARC Raiders Database API (ardb.app)
-
-=head1 SYNOPSIS
-
-    use WWW::ARDB;
-
-    my $api = WWW::ARDB->new;
-
-    # Get all items
-    my $items = $api->items;
-    for my $item (@$items) {
-        printf "%s (%s) - %s\n", $item->name, $item->rarity // 'n/a', $item->type;
-    }
-
-    # Get specific item with full details
-    my $item = $api->item('acoustic_guitar');
-    print $item->description;
-
-    # Get all quests
-    my $quests = $api->quests;
-
-    # Get specific quest
-    my $quest = $api->quest('picking_up_the_pieces');
-    print $quest->title;
-
-    # Get all ARC enemies
-    my $enemies = $api->arc_enemies;
-
-    # Get specific enemy with drop table
-    my $enemy = $api->arc_enemy('wasp');
-    print $enemy->name;
-
-=head1 DESCRIPTION
-
-WWW::ARDB provides a Perl interface to the ARC Raiders Database API at L<https://ardb.app>.
-
-The API provides information about items, quests, and ARC enemies from the
-ARC Raiders game.
-
-B<Note:> Per the API documentation, you should store response data using your
-own storage solution and refresh it periodically. This module provides caching
-to help with that.
-
-=head1 ATTRIBUTES
-
-=head2 ua
-
-The L<LWP::UserAgent> instance used for HTTP requests.
-
-=head2 use_cache
-
-Boolean, default true. Whether to cache API responses.
-
-=head2 cache_dir
-
-Optional custom directory for cache files.
-
-=head2 debug
-
-Boolean, default false. Enable debug output. Can also be set via
-C<$ENV{WWW_ARDB_DEBUG}>.
-
-=head1 METHODS
-
-=head2 items
-
-    my $items = $api->items;
-
-Returns an ArrayRef of L<WWW::ARDB::Result::Item> objects.
-
-=head2 item($id)
-
-    my $item = $api->item('acoustic_guitar');
-
-Returns a single L<WWW::ARDB::Result::Item> with complete data.
-
-=head2 quests
-
-    my $quests = $api->quests;
-
-Returns an ArrayRef of L<WWW::ARDB::Result::Quest> objects.
-
-=head2 quest($id)
-
-    my $quest = $api->quest('picking_up_the_pieces');
-
-Returns a single L<WWW::ARDB::Result::Quest> with complete data.
-
-=head2 arc_enemies
-
-    my $enemies = $api->arc_enemies;
-
-Returns an ArrayRef of L<WWW::ARDB::Result::ArcEnemy> objects.
-
-=head2 arc_enemy($id)
-
-    my $enemy = $api->arc_enemy('wasp');
-
-Returns a single L<WWW::ARDB::Result::ArcEnemy> with complete data including
-drop table.
-
-=head2 find_item_by_name($name)
-
-    my $item = $api->find_item_by_name('Acoustic Guitar');
-
-Case-insensitive search for an item by name.
-
-=head2 find_quest_by_title($title)
-
-    my $quest = $api->find_quest_by_title('Picking Up The Pieces');
-
-Case-insensitive search for a quest by title.
-
-=head2 find_arc_enemy_by_name($name)
-
-    my $enemy = $api->find_arc_enemy_by_name('Wasp');
-
-Case-insensitive search for an ARC enemy by name.
-
-=head2 clear_cache($endpoint)
-
-    $api->clear_cache('items');
-    $api->clear_cache;  # clear all
-
-Clear cached responses.
-
-=head1 RAW METHODS
-
-Each endpoint also has a C<*_raw> variant that returns the raw API response
-as a Perl data structure:
-
-    my $data = $api->items_raw;
-    my $data = $api->item_raw('acoustic_guitar');
-    my $data = $api->quests_raw;
-    my $data = $api->quest_raw('picking_up_the_pieces');
-    my $data = $api->arc_enemies_raw;
-    my $data = $api->arc_enemy_raw('wasp');
-
 =head1 ATTRIBUTION
 
 Applications using data from ardb.app must include attribution as per the
@@ -381,4 +463,8 @@ link back to the source.
 
 L<https://ardb.app>, L<https://ardb.app/developers/api>
 
+L<WWW::ARDB::Result::Item>, L<WWW::ARDB::Result::Quest>, L<WWW::ARDB::Result::ArcEnemy>
+
 =cut
+
+1;

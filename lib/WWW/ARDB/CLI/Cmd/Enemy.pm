@@ -8,6 +8,18 @@ use JSON::MaybeXS;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    ardb enemy wasp
+    ardb enemy drone --json
+
+=head1 DESCRIPTION
+
+CLI command to show detailed information for a specific ARC enemy from the ARC
+Raiders Database, including drop table and locations.
+
+=cut
+
 sub execute {
     my ($self, $args, $chain) = @_;
     my $app = $chain->[0];

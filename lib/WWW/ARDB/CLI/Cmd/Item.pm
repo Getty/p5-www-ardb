@@ -8,6 +8,18 @@ use JSON::MaybeXS;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    ardb item acoustic_guitar
+    ardb item medkit_small --json
+
+=head1 DESCRIPTION
+
+CLI command to show detailed information for a specific item from the ARC
+Raiders Database, including breakdown and crafting information.
+
+=cut
+
 sub execute {
     my ($self, $args, $chain) = @_;
     my $app = $chain->[0];

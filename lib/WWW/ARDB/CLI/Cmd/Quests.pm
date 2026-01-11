@@ -8,6 +8,19 @@ use MooX::Options;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    ardb quests
+    ardb quests --search pieces
+    ardb quests --trader shani
+
+=head1 DESCRIPTION
+
+CLI command to list all quests from the ARC Raiders Database with optional
+filtering by title or trader name.
+
+=cut
+
 option search => (
     is      => 'ro',
     short   => 's',
@@ -15,12 +28,30 @@ option search => (
     doc     => 'Search quests by title',
 );
 
+=opt search
+
+    ardb quests --search pieces
+    ardb quests -s delivery
+
+Case-insensitive substring search for quests by title.
+
+=cut
+
 option trader => (
     is      => 'ro',
     short   => 't',
     format  => 's',
     doc     => 'Filter by trader name',
 );
+
+=opt trader
+
+    ardb quests --trader shani
+    ardb quests -t quinn
+
+Case-insensitive substring search for quests by trader/quest giver name.
+
+=cut
 
 sub execute {
     my ($self, $args, $chain) = @_;

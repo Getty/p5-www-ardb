@@ -8,6 +8,18 @@ use JSON::MaybeXS;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    ardb quest picking_up_the_pieces
+    ardb quest first_delivery --json
+
+=head1 DESCRIPTION
+
+CLI command to show detailed information for a specific quest from the ARC
+Raiders Database, including objectives, rewards, and required items.
+
+=cut
+
 sub execute {
     my ($self, $args, $chain) = @_;
     my $app = $chain->[0];

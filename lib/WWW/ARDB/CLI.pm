@@ -10,20 +10,55 @@ use Getopt::Long qw(:config pass_through);
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    use WWW::ARDB::CLI;
+    WWW::ARDB::CLI->new_with_cmd;
+
+=head1 DESCRIPTION
+
+Main CLI class for the ARC Raiders Database API client. Uses L<MooX::Cmd>
+for subcommand handling.
+
+See C<ardb --help> for command-line usage.
+
+=cut
+
 has debug => (
     is      => 'ro',
     default => sub { $ENV{WWW_ARDB_DEBUG} // 0 },
 );
+
+=attr debug
+
+Boolean. Enable debug output. Set via C<--debug> or C<-d> flag, or
+C<WWW_ARDB_DEBUG> environment variable. Defaults to C<0>.
+
+=cut
 
 has no_cache => (
     is      => 'ro',
     default => sub { $ENV{WWW_ARDB_NO_CACHE} // 0 },
 );
 
+=attr no_cache
+
+Boolean. Disable response caching. Set via C<--no-cache> flag, or
+C<WWW_ARDB_NO_CACHE> environment variable. Defaults to C<0>.
+
+=cut
+
 has json => (
     is      => 'ro',
     default => sub { $ENV{WWW_ARDB_JSON} // 0 },
 );
+
+=attr json
+
+Boolean. Output results as JSON. Set via C<--json> or C<-j> flag, or
+C<WWW_ARDB_JSON> environment variable. Defaults to C<0>.
+
+=cut
 
 around BUILDARGS => sub {
     my ($orig, $class, @args) = @_;
@@ -47,6 +82,13 @@ has api => (
     is      => 'lazy',
     builder => '_build_api',
 );
+
+=attr api
+
+L<WWW::ARDB> instance used for API calls. Automatically configured with
+debug and caching settings.
+
+=cut
 
 sub _build_api {
     my $self = shift;
@@ -87,43 +129,12 @@ sub output_json {
     print encode_json($data) . "\n";
 }
 
-1;
+=method output_json
 
-__END__
+    $cli->output_json($data);
 
-=head1 NAME
-
-WWW::ARDB::CLI - Command-line interface for WWW::ARDB
-
-=head1 SYNOPSIS
-
-    use WWW::ARDB::CLI;
-    WWW::ARDB::CLI->new_with_cmd;
-
-=head1 DESCRIPTION
-
-Main CLI class for the ARC Raiders Database API client. Uses L<MooX::Cmd>
-for subcommand handling.
-
-=head1 ATTRIBUTES
-
-=head2 debug
-
-Enable debug output. Use C<--debug> or C<-d> flag, or set via
-C<WWW_ARDB_DEBUG> environment variable.
-
-=head2 no_cache
-
-Disable response caching. Use C<--no-cache> flag, or set via
-C<WWW_ARDB_NO_CACHE> environment variable.
-
-=head2 json
-
-Output results as JSON. Use C<--json> or C<-j> flag, or set via
-C<WWW_ARDB_JSON> environment variable.
-
-=head2 api
-
-L<WWW::ARDB> instance.
+Helper method to output data as JSON. Used by subcommands.
 
 =cut
+
+1;

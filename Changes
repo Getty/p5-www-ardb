@@ -1,6 +1,8 @@
 Revision history for WWW-ARDB
 
 {{$NEXT}}
+  - Complete inline POD documentation for all modules
+  - Using PodWeaver conventions (=attr, =method, =opt)
 
 0.001     2026-01-05 04:56:22Z
   - Initial release

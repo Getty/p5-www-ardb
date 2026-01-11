@@ -11,58 +11,6 @@ our $VERSION = '0.002';
 
 use constant BASE_URL => 'https://ardb.app/api';
 
-sub items {
-    my ($self, %params) = @_;
-    return $self->_build_request('items', %params);
-}
-
-sub item {
-    my ($self, $id, %params) = @_;
-    return $self->_build_request("items/$id", %params);
-}
-
-sub quests {
-    my ($self, %params) = @_;
-    return $self->_build_request('quests', %params);
-}
-
-sub quest {
-    my ($self, $id, %params) = @_;
-    return $self->_build_request("quests/$id", %params);
-}
-
-sub arc_enemies {
-    my ($self, %params) = @_;
-    return $self->_build_request('arc-enemies', %params);
-}
-
-sub arc_enemy {
-    my ($self, $id, %params) = @_;
-    return $self->_build_request("arc-enemies/$id", %params);
-}
-
-sub _build_request {
-    my ($self, $endpoint, %params) = @_;
-
-    my $uri = URI->new(BASE_URL . '/' . $endpoint);
-    $uri->query_form(%params) if %params;
-
-    return HTTP::Request->new(
-        GET => $uri->as_string,
-        [
-            'Accept' => 'application/json',
-        ],
-    );
-}
-
-1;
-
-__END__
-
-=head1 NAME
-
-WWW::ARDB::Request - HTTP request factory for WWW::ARDB
-
 =head1 SYNOPSIS
 
     use WWW::ARDB::Request;
@@ -82,30 +30,100 @@ WWW::ARDB::Request - HTTP request factory for WWW::ARDB
 This module creates L<HTTP::Request> objects for the ardb.app API endpoints.
 It can be used standalone for async HTTP clients like L<WWW::Chain>.
 
-=head1 METHODS
-
-=head2 items
-
-Returns an HTTP::Request for GET /items.
-
-=head2 item($id)
-
-Returns an HTTP::Request for GET /items/{id}.
-
-=head2 quests
-
-Returns an HTTP::Request for GET /quests.
-
-=head2 quest($id)
-
-Returns an HTTP::Request for GET /quests/{id}.
-
-=head2 arc_enemies
-
-Returns an HTTP::Request for GET /arc-enemies.
-
-=head2 arc_enemy($id)
-
-Returns an HTTP::Request for GET /arc-enemies/{id}.
+The base URL is C<https://ardb.app/api>.
 
 =cut
+
+sub items {
+    my ($self, %params) = @_;
+    return $self->_build_request('items', %params);
+}
+
+=method items
+
+    my $request = $factory->items;
+
+Returns an L<HTTP::Request> for C<GET /items>.
+
+=cut
+
+sub item {
+    my ($self, $id, %params) = @_;
+    return $self->_build_request("items/$id", %params);
+}
+
+=method item
+
+    my $request = $factory->item('acoustic_guitar');
+
+Returns an L<HTTP::Request> for C<GET /items/{id}>.
+
+=cut
+
+sub quests {
+    my ($self, %params) = @_;
+    return $self->_build_request('quests', %params);
+}
+
+=method quests
+
+    my $request = $factory->quests;
+
+Returns an L<HTTP::Request> for C<GET /quests>.
+
+=cut
+
+sub quest {
+    my ($self, $id, %params) = @_;
+    return $self->_build_request("quests/$id", %params);
+}
+
+=method quest
+
+    my $request = $factory->quest('picking_up_the_pieces');
+
+Returns an L<HTTP::Request> for C<GET /quests/{id}>.
+
+=cut
+
+sub arc_enemies {
+    my ($self, %params) = @_;
+    return $self->_build_request('arc-enemies', %params);
+}
+
+=method arc_enemies
+
+    my $request = $factory->arc_enemies;
+
+Returns an L<HTTP::Request> for C<GET /arc-enemies>.
+
+=cut
+
+sub arc_enemy {
+    my ($self, $id, %params) = @_;
+    return $self->_build_request("arc-enemies/$id", %params);
+}
+
+=method arc_enemy
+
+    my $request = $factory->arc_enemy('wasp');
+
+Returns an L<HTTP::Request> for C<GET /arc-enemies/{id}>.
+
+=cut
+
+sub _build_request {
+    my ($self, $endpoint, %params) = @_;
+
+    my $uri = URI->new(BASE_URL . '/' . $endpoint);
+    $uri->query_form(%params) if %params;
+
+    return HTTP::Request->new(
+        GET => $uri->as_string,
+        [
+            'Accept' => 'application/json',
+        ],
+    );
+}
+
+1;

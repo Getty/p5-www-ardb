@@ -11,12 +11,45 @@ use namespace::clean;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    use WWW::ARDB::Cache;
+
+    my $cache = WWW::ARDB::Cache->new;
+
+    # Store data
+    $cache->set('items', {}, $data);
+
+    # Retrieve data
+    my $cached = $cache->get('items', {});
+
+    # Clear specific endpoint
+    $cache->clear('items');
+
+    # Clear all
+    $cache->clear;
+
+=head1 DESCRIPTION
+
+This module provides file-based caching for API responses. Cache files are
+stored in the XDG cache directory on Unix systems (C<~/.cache/ardb>) or
+C<LOCALAPPDATA> on Windows (C<%LOCALAPPDATA%\ardb>).
+
+=cut
+
 has cache_dir => (
     is      => 'lazy',
     isa     => InstanceOf['Path::Tiny'],
     coerce  => sub { ref $_[0] ? $_[0] : path($_[0]) },
     builder => '_build_cache_dir',
 );
+
+=attr cache_dir
+
+L<Path::Tiny> object for the cache directory. Defaults to platform-specific
+location: C<~/.cache/ardb> on Unix or C<%LOCALAPPDATA%/ardb> on Windows.
+
+=cut
 
 sub _build_cache_dir {
     my $self = shift;
@@ -40,6 +73,13 @@ has namespace => (
     default => 'default',
 );
 
+=attr namespace
+
+String prefix for cache keys. Defaults to C<default>. Can be used to segregate
+caches for different purposes.
+
+=cut
+
 sub get {
     my ($self, $endpoint, $params) = @_;
 
@@ -51,6 +91,15 @@ sub get {
 
     return $cached->{data};
 }
+
+=method get
+
+    my $cached = $cache->get($endpoint, \%params);
+
+Retrieve cached data for an endpoint with the given parameters. Returns the
+cached data or undef if not found.
+
+=cut
 
 sub set {
     my ($self, $endpoint, $params, $data) = @_;
@@ -66,6 +115,14 @@ sub set {
 
     $file->spew_utf8(encode_json($cache_data));
 }
+
+=method set
+
+    $cache->set($endpoint, \%params, $data);
+
+Store data in cache for an endpoint with the given parameters.
+
+=cut
 
 sub clear {
     my ($self, $endpoint) = @_;
@@ -84,6 +141,16 @@ sub clear {
         }
     }
 }
+
+=method clear
+
+    $cache->clear($endpoint);  # Clear specific endpoint
+    $cache->clear;             # Clear all cached data
+
+Clear cached data. If C<$endpoint> is provided, only clears cache files for
+that endpoint. Otherwise clears all cache files.
+
+=cut
 
 sub _cache_key {
     my ($self, $endpoint, $params) = @_;
@@ -107,60 +174,3 @@ sub _cache_file {
 }
 
 1;
-
-__END__
-
-=head1 NAME
-
-WWW::ARDB::Cache - File-based cache for WWW::ARDB
-
-=head1 SYNOPSIS
-
-    use WWW::ARDB::Cache;
-
-    my $cache = WWW::ARDB::Cache->new;
-
-    # Store data
-    $cache->set('items', {}, $data);
-
-    # Retrieve data
-    my $cached = $cache->get('items', {});
-
-    # Clear specific endpoint
-    $cache->clear('items');
-
-    # Clear all
-    $cache->clear;
-
-=head1 DESCRIPTION
-
-This module provides file-based caching for API responses. Cache files are
-stored in the XDG cache directory on Unix systems or LOCALAPPDATA on Windows.
-
-=head1 ATTRIBUTES
-
-=head2 cache_dir
-
-Path::Tiny object for the cache directory. Defaults to C<~/.cache/ardb> on
-Unix or C<%LOCALAPPDATA%/ardb> on Windows.
-
-=head2 namespace
-
-String prefix for cache keys. Defaults to C<default>.
-
-=head1 METHODS
-
-=head2 get($endpoint, \%params)
-
-Retrieve cached data for an endpoint. Returns undef if not cached.
-
-=head2 set($endpoint, \%params, $data)
-
-Store data in cache.
-
-=head2 clear($endpoint)
-
-Clear cached data. If C<$endpoint> is provided, only clears that endpoint.
-Otherwise clears all cached data.
-
-=cut

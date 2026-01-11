@@ -8,12 +8,35 @@ use MooX::Options;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    ardb items
+    ardb items --search guitar
+    ardb items --type weapon
+    ardb items --rarity legendary
+
+=head1 DESCRIPTION
+
+CLI command to list all items from the ARC Raiders Database with optional
+filtering by name, type, or rarity.
+
+=cut
+
 option search => (
     is      => 'ro',
     short   => 's',
     format  => 's',
     doc     => 'Search items by name',
 );
+
+=opt search
+
+    ardb items --search guitar
+    ardb items -s medkit
+
+Case-insensitive substring search for items by name.
+
+=cut
 
 option type => (
     is      => 'ro',
@@ -22,12 +45,30 @@ option type => (
     doc     => 'Filter by type',
 );
 
+=opt type
+
+    ardb items --type weapon
+    ardb items -t "quick use"
+
+Filter items by type (exact match, case-insensitive).
+
+=cut
+
 option rarity => (
     is      => 'ro',
     short   => 'r',
     format  => 's',
     doc     => 'Filter by rarity',
 );
+
+=opt rarity
+
+    ardb items --rarity legendary
+    ardb items -r epic
+
+Filter items by rarity level (exact match, case-insensitive).
+
+=cut
 
 sub execute {
     my ($self, $args, $chain) = @_;

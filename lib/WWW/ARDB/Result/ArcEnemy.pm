@@ -8,11 +8,38 @@ use namespace::clean;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    my $enemy = $api->arc_enemy('wasp');
+
+    print $enemy->name;       # "Wasp"
+    print $enemy->icon_url;   # Full URL to icon
+
+    for my $drop (@{$enemy->drop_table}) {
+        printf "- %s (%s)\n", $drop->{name}, $drop->{rarity};
+    }
+
+    # Or just get drop names
+    my $drops = $enemy->drops;  # ['Wires', 'Medium Ammo', ...]
+
+=head1 DESCRIPTION
+
+Result object representing an ARC enemy from the ARC Raiders Database. Created
+via L<WWW::ARDB> methods like C<arc_enemies()> and C<arc_enemy()>.
+
+=cut
+
 has id => (
     is       => 'ro',
     isa      => Str,
     required => 1,
 );
+
+=attr id
+
+String. Unique identifier for the enemy (e.g., C<wasp>).
+
+=cut
 
 has name => (
     is       => 'ro',
@@ -20,11 +47,23 @@ has name => (
     required => 1,
 );
 
+=attr name
+
+String. Enemy name.
+
+=cut
+
 has icon => (
     is      => 'ro',
     isa     => Maybe[Str],
     default => sub { undef },
 );
+
+=attr icon
+
+String or undef. Path to icon image (use C<icon_url()> for full URL).
+
+=cut
 
 has image => (
     is      => 'ro',
@@ -32,11 +71,25 @@ has image => (
     default => sub { undef },
 );
 
+=attr image
+
+String or undef. Path to full enemy image (use C<image_url()> for full URL).
+
+=cut
+
 has drop_table => (
     is      => 'ro',
     isa     => ArrayRef,
     default => sub { [] },
 );
+
+=attr drop_table
+
+ArrayRef of HashRefs. Items this enemy can drop, each with C<id>, C<name>,
+C<rarity>, C<type>, C<foundIn>, C<value>, C<icon>.
+Only populated for detail endpoint (C<arc_enemy($id)>).
+
+=cut
 
 has related_maps => (
     is      => 'ro',
@@ -44,11 +97,24 @@ has related_maps => (
     default => sub { [] },
 );
 
+=attr related_maps
+
+ArrayRef of HashRefs. Maps where this enemy appears.
+Only populated for detail endpoint (C<arc_enemy($id)>).
+
+=cut
+
 has updated_at => (
     is      => 'ro',
     isa     => Maybe[Str],
     default => sub { undef },
 );
+
+=attr updated_at
+
+String or undef. ISO 8601 timestamp of last update.
+
+=cut
 
 has _raw => (
     is      => 'ro',
@@ -71,12 +137,29 @@ sub from_hashref {
     );
 }
 
+=method from_hashref
+
+    my $enemy = WWW::ARDB::Result::ArcEnemy->from_hashref($data);
+
+Class method. Constructs an ArcEnemy object from API response data (HashRef).
+
+=cut
+
 sub icon_url {
     my $self = shift;
     return unless $self->icon;
     return 'https://ardb.app' . $self->icon if $self->icon =~ m{^/};
     return $self->icon;
 }
+
+=method icon_url
+
+    my $url = $enemy->icon_url;
+
+Returns the full URL to the enemy's icon image, or undef if no icon is set.
+Automatically prepends C<https://ardb.app> to relative paths.
+
+=cut
 
 sub image_url {
     my $self = shift;
@@ -85,80 +168,26 @@ sub image_url {
     return $self->image;
 }
 
+=method image_url
+
+    my $url = $enemy->image_url;
+
+Returns the full URL to the enemy's full image, or undef if no image is set.
+Automatically prepends C<https://ardb.app> to relative paths.
+
+=cut
+
 sub drops {
     my $self = shift;
     return [ map { $_->{name} } @{$self->drop_table} ];
 }
 
-1;
+=method drops
 
-__END__
+    my $names = $enemy->drops;
 
-=head1 NAME
-
-WWW::ARDB::Result::ArcEnemy - ARC Enemy result object for WWW::ARDB
-
-=head1 SYNOPSIS
-
-    my $enemy = $api->arc_enemy('wasp');
-
-    print $enemy->name;       # "Wasp"
-    print $enemy->icon_url;   # Full URL to icon
-
-    for my $drop (@{$enemy->drop_table}) {
-        printf "- %s (%s)\n", $drop->{name}, $drop->{rarity};
-    }
-
-    # Or just get drop names
-    my $drops = $enemy->drops;  # ['Wires', 'Medium Ammo', ...]
-
-=head1 ATTRIBUTES
-
-=head2 id
-
-String. Unique identifier.
-
-=head2 name
-
-String. Enemy name.
-
-=head2 icon
-
-String or undef. Path to icon image.
-
-=head2 image
-
-String or undef. Path to full image.
-
-=head2 drop_table
-
-ArrayRef of HashRefs. Items this enemy can drop, each with C<id>, C<name>,
-C<rarity>, C<type>, C<foundIn>, C<value>, C<icon> (detail endpoint only).
-
-=head2 related_maps
-
-ArrayRef. Maps where this enemy appears (detail endpoint only).
-
-=head2 updated_at
-
-String or undef. ISO 8601 timestamp of last update.
-
-=head1 METHODS
-
-=head2 from_hashref($data)
-
-Class method. Creates an ArcEnemy object from API response data.
-
-=head2 icon_url
-
-Returns the full URL to the enemy's icon, or undef if no icon.
-
-=head2 image_url
-
-Returns the full URL to the enemy's image, or undef if no image.
-
-=head2 drops
-
-Returns an ArrayRef of drop item names.
+Returns an ArrayRef of drop item names extracted from the drop table.
 
 =cut
+
+1;

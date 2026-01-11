@@ -8,12 +8,33 @@ use MooX::Options;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    ardb enemies
+    ardb enemies --search wasp
+
+=head1 DESCRIPTION
+
+CLI command to list all ARC enemies from the ARC Raiders Database with optional
+filtering by name.
+
+=cut
+
 option search => (
     is      => 'ro',
     short   => 's',
     format  => 's',
     doc     => 'Search enemies by name',
 );
+
+=opt search
+
+    ardb enemies --search wasp
+    ardb enemies -s drone
+
+Case-insensitive substring search for enemies by name.
+
+=cut
 
 sub execute {
     my ($self, $args, $chain) = @_;

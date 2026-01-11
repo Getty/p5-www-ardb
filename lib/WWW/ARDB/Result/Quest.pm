@@ -8,11 +8,36 @@ use namespace::clean;
 
 our $VERSION = '0.002';
 
+=head1 SYNOPSIS
+
+    my $quest = $api->quest('picking_up_the_pieces');
+
+    print $quest->title;           # "Picking Up The Pieces"
+    print $quest->trader_name;     # "Shani"
+    print $quest->trader_type;     # "Security"
+
+    for my $step (@{$quest->steps}) {
+        printf "- %s (x%d)\n", $step->{title}, $step->{amount};
+    }
+
+=head1 DESCRIPTION
+
+Result object representing a quest from the ARC Raiders Database. Created via
+L<WWW::ARDB> methods like C<quests()> and C<quest()>.
+
+=cut
+
 has id => (
     is       => 'ro',
     isa      => Str,
     required => 1,
 );
+
+=attr id
+
+String. Unique identifier for the quest (e.g., C<picking_up_the_pieces>).
+
+=cut
 
 has title => (
     is       => 'ro',
@@ -20,11 +45,23 @@ has title => (
     required => 1,
 );
 
+=attr title
+
+String. Quest title.
+
+=cut
+
 has description => (
     is      => 'ro',
     isa     => Maybe[Str],
     default => sub { undef },
 );
+
+=attr description
+
+String or undef. Quest description or narrative text.
+
+=cut
 
 has maps => (
     is      => 'ro',
@@ -32,11 +69,23 @@ has maps => (
     default => sub { [] },
 );
 
+=attr maps
+
+ArrayRef of HashRefs. Available maps/locations for this quest.
+
+=cut
+
 has steps => (
     is      => 'ro',
     isa     => ArrayRef,
     default => sub { [] },
 );
+
+=attr steps
+
+ArrayRef of HashRefs. Quest objectives, each with C<title> and C<amount>.
+
+=cut
 
 has trader => (
     is      => 'ro',
@@ -44,11 +93,24 @@ has trader => (
     default => sub { undef },
 );
 
+=attr trader
+
+HashRef or undef. Quest giver information including C<id>, C<name>, C<type>,
+C<description>, C<image>, C<icon>.
+
+=cut
+
 has required_items => (
     is      => 'ro',
     isa     => ArrayRef,
     default => sub { [] },
 );
+
+=attr required_items
+
+ArrayRef of HashRefs. Items needed to complete the quest.
+
+=cut
 
 has rewards => (
     is      => 'ro',
@@ -56,17 +118,36 @@ has rewards => (
     default => sub { [] },
 );
 
+=attr rewards
+
+ArrayRef of HashRefs. Quest completion rewards.
+Only populated for detail endpoint (C<quest($id)>).
+
+=cut
+
 has xp_reward => (
     is      => 'ro',
     isa     => Maybe[Num],
     default => sub { undef },
 );
 
+=attr xp_reward
+
+Number or undef. Experience points awarded for completing the quest.
+
+=cut
+
 has updated_at => (
     is      => 'ro',
     isa     => Maybe[Str],
     default => sub { undef },
 );
+
+=attr updated_at
+
+String or undef. ISO 8601 timestamp of last update.
+
+=cut
 
 has _raw => (
     is      => 'ro',
@@ -92,11 +173,27 @@ sub from_hashref {
     );
 }
 
+=method from_hashref
+
+    my $quest = WWW::ARDB::Result::Quest->from_hashref($data);
+
+Class method. Constructs a Quest object from API response data (HashRef).
+
+=cut
+
 sub trader_name {
     my $self = shift;
     return unless $self->trader;
     return $self->trader->{name};
 }
+
+=method trader_name
+
+    my $name = $quest->trader_name;
+
+Returns the quest giver's name, or undef if no trader is set.
+
+=cut
 
 sub trader_type {
     my $self = shift;
@@ -104,90 +201,26 @@ sub trader_type {
     return $self->trader->{type};
 }
 
+=method trader_type
+
+    my $type = $quest->trader_type;
+
+Returns the quest giver's type/profession (e.g., C<Security>), or undef if no
+trader is set.
+
+=cut
+
 sub map_names {
     my $self = shift;
     return [ map { $_->{name} } @{$self->maps} ];
 }
 
-1;
+=method map_names
 
-__END__
-
-=head1 NAME
-
-WWW::ARDB::Result::Quest - Quest result object for WWW::ARDB
-
-=head1 SYNOPSIS
-
-    my $quest = $api->quest('picking_up_the_pieces');
-
-    print $quest->title;           # "Picking Up The Pieces"
-    print $quest->trader_name;     # "Shani"
-    print $quest->trader_type;     # "Security"
-
-    for my $step (@{$quest->steps}) {
-        printf "- %s (x%d)\n", $step->{title}, $step->{amount};
-    }
-
-=head1 ATTRIBUTES
-
-=head2 id
-
-String. Unique identifier.
-
-=head2 title
-
-String. Quest title.
-
-=head2 description
-
-String or undef. Quest description/narrative.
-
-=head2 maps
-
-ArrayRef. Available maps/locations for the quest.
-
-=head2 steps
-
-ArrayRef of HashRefs. Quest objectives with C<title> and C<amount>.
-
-=head2 trader
-
-HashRef or undef. Quest giver information with C<id>, C<name>, C<type>,
-C<description>, C<image>, C<icon>.
-
-=head2 required_items
-
-ArrayRef. Items needed to complete the quest.
-
-=head2 rewards
-
-ArrayRef. Quest completion rewards (detail endpoint only).
-
-=head2 xp_reward
-
-Number or undef. Experience points awarded.
-
-=head2 updated_at
-
-String or undef. ISO 8601 timestamp of last update.
-
-=head1 METHODS
-
-=head2 from_hashref($data)
-
-Class method. Creates a Quest object from API response data.
-
-=head2 trader_name
-
-Returns the quest giver's name, or undef.
-
-=head2 trader_type
-
-Returns the quest giver's type/profession, or undef.
-
-=head2 map_names
+    my $names = $quest->map_names;
 
 Returns an ArrayRef of map names where the quest is available.
 
 =cut
+
+1;
