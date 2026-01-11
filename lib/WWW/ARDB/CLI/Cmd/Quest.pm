@@ -6,7 +6,7 @@ use Moo;
 use MooX::Cmd;
 use JSON::MaybeXS;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head1 SYNOPSIS
 

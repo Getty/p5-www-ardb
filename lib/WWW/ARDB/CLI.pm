@@ -8,7 +8,7 @@ use WWW::ARDB;
 use JSON::MaybeXS qw( encode_json );
 use Getopt::Long qw(:config pass_through);
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head1 SYNOPSIS
 

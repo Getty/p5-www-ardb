@@ -9,7 +9,7 @@ use Digest::MD5 qw( md5_hex );
 use JSON::MaybeXS qw( encode_json decode_json );
 use namespace::clean;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head1 SYNOPSIS
 

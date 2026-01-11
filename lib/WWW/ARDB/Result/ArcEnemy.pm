@@ -6,7 +6,7 @@ use Moo;
 use Types::Standard qw( Str ArrayRef HashRef Maybe );
 use namespace::clean;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head1 SYNOPSIS
 
