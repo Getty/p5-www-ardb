@@ -1,0 +1,3 @@
+claude: true
+prompt: |
+  Drain the WWW-ARDB karr board. The ARC Raiders Database API client with a CLI on top. Delegate behaviour-relevant code to the www-ardb-worker agent and release audits to www-ardb-release-manager; follow .claude/rules/www-ardb-rules.md. Never release.

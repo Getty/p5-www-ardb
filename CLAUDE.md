@@ -41,3 +41,35 @@ Commands use MooX::Cmd + MooX::Options in `lib/WWW/ARDB/CLI/Cmd/`.
 - Result classes parse API responses via `from_hashref()`
 - Request classes build HTTP::Request objects
 - Support ONLY exact API format - no speculative fallbacks
+
+The conventions above are the short list; the binding ones live in the skills and
+are force-loaded into the agents below. Do not restate them here.
+
+## Delegation
+
+Delegate behavior-relevant code to the right agent instead of touching it yourself —
+principle and lane are in `.claude/rules/www-ardb-rules.md`.
+
+| Task | Agent |
+|---|---|
+| Implement / refactor / debug behavior-relevant code | `www-ardb-worker` (default) |
+| Commits, `Changes`, card → done, pre-release audit | `www-ardb-release-manager` |
+
+Only the release-manager commits; a worker leaves a commit-ready tree and a report.
+
+The agents carry their skills via `briefing.skills` (see `.claude/agents/`); the main
+agent delegates rather than loading them. The shared skills under `.claude/skills/`
+are **installed** from the Getty library by skilletor — they are not edited here.
+`www-ardb-core` is the one skill this repo owns: module map, the camelCase →
+snake_case mapping contract, request/cache layout, CLI conventions, vocabulary and
+the known rough edges.
+
+## State of the code
+
+- The library, the result classes and the six CLI commands are implemented and the
+  suite is green — `prove -lr t/` runs ten files offline against `t/fixtures/`.
+- The cache stores a `timestamp` but evaluates **no TTL**: a cached response is
+  returned until `clear_cache`.
+- The `cpanfile` declares `Type::Tiny` while the code imports `Types::Standard`;
+  `dist.ini` has no `copyright_year` and no `LICENSE` is committed.
+- The list commands filter client-side; the API is not asked to filter.
