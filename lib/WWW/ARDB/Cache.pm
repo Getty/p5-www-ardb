@@ -3,7 +3,7 @@ package WWW::ARDB::Cache;
 # ABSTRACT: File-based cache for WWW::ARDB
 
 use Moo;
-use Types::Standard qw( Str InstanceOf );
+use Types::Standard qw( Str Int InstanceOf );
 use Path::Tiny qw( path );
 use Digest::MD5 qw( md5_hex );
 use JSON::MaybeXS qw( encode_json decode_json );
@@ -80,14 +80,33 @@ caches for different purposes.
 
 =cut
 
+has max_age => (
+    is      => 'ro',
+    isa     => Int,
+    default => 86400,
+);
+
+=attr max_age
+
+Integer, seconds. Maximum age of a cache entry; an older entry counts as not
+cached. Defaults to C<86400> (one day). C<0> never serves from the cache.
+
+=cut
+
 sub get {
     my ($self, $endpoint, $params) = @_;
 
     my $file = $self->_cache_file($endpoint, $params);
     return unless $file->exists;
 
-    my $content = $file->slurp_utf8;
-    my $cached = decode_json($content);
+    my $cached = eval { decode_json($file->slurp_utf8) };
+    return unless ref $cached eq 'HASH';
+
+    my $timestamp = $cached->{timestamp};
+    return unless defined $timestamp && $timestamp =~ /\A[0-9]+\z/;
+
+    my $age = time() - $timestamp;
+    return unless $age >= 0 && $age < $self->max_age;
 
     return $cached->{data};
 }
@@ -97,7 +116,9 @@ sub get {
     my $cached = $cache->get($endpoint, \%params);
 
 Retrieve cached data for an endpoint with the given parameters. Returns the
-cached data or undef if not found.
+cached data or undef if not found. An entry older than L</max_age>, or one
+without a usable timestamp (unreadable, truncated, hand-edited), counts as not
+found.
 
 =cut
 

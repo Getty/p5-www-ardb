@@ -4,9 +4,18 @@ use warnings;
 use Test::More;
 use File::Temp qw( tempdir );
 use lib 't/lib';
+use JSON::MaybeXS qw( encode_json decode_json );
+use Path::Tiny qw( path );
 
 use WWW::ARDB;
 use MockUA;
+
+{
+    package CountingUA;
+    use parent -norequire, 'MockUA';
+    sub new { my $s = MockUA::new(@_); $s->{count} = 0; $s }
+    sub request { $_[0]{count}++; MockUA::request(@_) }
+}
 
 my $tmpdir = tempdir(CLEANUP => 1);
 my $mock_ua = MockUA->new(fixtures_dir => 't/fixtures');
@@ -55,5 +64,36 @@ my $api_no_cache = WWW::ARDB->new(
 $api_no_cache->items;
 @files = glob("$tmpdir/*.json");
 is(scalar @files, 0, 'no cache created when disabled');
+
+# Expired entries are fetched again and the file is rewritten
+{
+    my $dir = tempdir(CLEANUP => 1);
+    my $counter = CountingUA->new;
+    my $c_api = WWW::ARDB->new(
+        ua             => $counter,
+        cache_dir      => $dir,
+        cache_max_age  => 100,
+    );
+    $c_api->items;
+    $c_api->items;
+    is($counter->{count}, 1, 'second call inside the TTL is served from the cache');
+
+    my ($file) = glob("$dir/*.json");
+    my $entry = decode_json(path($file)->slurp_utf8);
+    $entry->{timestamp} = time() - 1000;
+    path($file)->spew_utf8(encode_json($entry));
+
+    $c_api->items;
+    is($counter->{count}, 2, 'expired entry is fetched again');
+    cmp_ok(decode_json(path($file)->slurp_utf8)->{timestamp}, '>', time() - 100,
+        'cache file rewritten with a fresh timestamp');
+
+    $c_api->items;
+    is($counter->{count}, 2, 'refreshed entry is a hit again');
+
+    my $fresh = WWW::ARDB->new(ua => $counter, cache_dir => $dir, cache_max_age => 0);
+    $fresh->items;
+    is($counter->{count}, 3, 'cache_max_age 0 always fetches');
+}
 
 done_testing;

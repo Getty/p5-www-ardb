@@ -1,6 +1,10 @@
 Revision history for WWW-ARDB
 
 {{$NEXT}}
+  - Cached responses now expire after one day (86400 seconds) instead of
+    never; an entry without a usable timestamp counts as expired
+  - New cache_max_age option on WWW::ARDB and max_age on WWW::ARDB::Cache to
+    choose the maximum age, 0 always fetches a fresh response
 
 0.002     2026-01-11 04:38:16Z
   - Complete inline POD documentation for all modules

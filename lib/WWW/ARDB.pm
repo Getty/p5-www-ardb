@@ -108,7 +108,8 @@ L<WWW::ARDB::Cache> instance for caching API responses.
 sub _build_cache {
     my $self = shift;
     return WWW::ARDB::Cache->new(
-        $self->cache_dir ? (cache_dir => $self->cache_dir) : ()
+        $self->cache_dir ? (cache_dir => $self->cache_dir) : (),
+        defined $self->cache_max_age ? (max_age => $self->cache_max_age) : (),
     );
 }
 
@@ -131,6 +132,18 @@ has cache_dir => (
 
 Optional custom directory for cache files. If not specified, uses platform
 default (C<~/.cache/ardb> on Unix, C<%LOCALAPPDATA%/ardb> on Windows).
+
+=cut
+
+has cache_max_age => (
+    is => 'ro',
+);
+
+=attr cache_max_age
+
+Optional maximum age of cached responses in seconds, passed on to
+L<WWW::ARDB::Cache/max_age>. Defaults to the cache's default of C<86400> (one
+day); C<0> always fetches a fresh response.
 
 =cut
 
