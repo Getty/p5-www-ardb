@@ -110,13 +110,17 @@ Show details for a specific ARC enemy including drop table.
 
 =head1 ENVIRONMENT
 
-=over 4
+=env WWW_ARDB_DEBUG
 
-=item B<WWW_ARDB_DEBUG>
+Set to 1 to enable debug output, like C<--debug>. Defaults to 0.
 
-Set to 1 to enable debug output.
+=env WWW_ARDB_NO_CACHE
 
-=back
+Set to 1 to disable response caching, like C<--no-cache>. Defaults to 0.
+
+=env WWW_ARDB_JSON
+
+Set to 1 to output results as JSON, like C<--json>. Defaults to 0.
 
 =head1 ATTRIBUTION
 
