@@ -1,16 +1,16 @@
-requires 'Moo';
-requires 'Type::Tiny';
-requires 'LWP::UserAgent';
-requires 'JSON::MaybeXS';
-requires 'HTTP::Request';
-requires 'Path::Tiny';
 requires 'Digest::MD5';
-requires 'URI';
-requires 'namespace::clean';
+requires 'HTTP::Request';
+requires 'JSON::MaybeXS';
+requires 'LWP::UserAgent';
+requires 'Moo';
 requires 'MooX::Cmd';
 requires 'MooX::Options';
+requires 'Path::Tiny';
+requires 'Types::Standard';
+requires 'URI';
+requires 'namespace::clean';
 
 on test => sub {
-    requires 'Test::More';
     requires 'Capture::Tiny';
+    requires 'Test::More';
 };
