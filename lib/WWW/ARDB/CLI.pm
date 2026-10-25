@@ -86,7 +86,10 @@ has api => (
 =attr api
 
 L<WWW::ARDB> instance used for API calls. Automatically configured with
-debug and caching settings.
+debug and caching settings. Pass a client to the constructor to use it
+instead of building one, for example one with a mock user agent:
+
+    my $cli = WWW::ARDB::CLI->new( api => WWW::ARDB->new( ua => $mock ) );
 
 =cut
 
