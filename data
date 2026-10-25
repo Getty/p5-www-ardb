@@ -1,0 +1,36 @@
+---
+claimed_at: 2026-10-25T05:49:45Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:49:45Z
+created: 2026-10-21T02:08:08Z
+id: 1
+priority: high
+started: 2026-10-25T05:42:23Z
+status: done
+tags:
+- dependency
+- cpanfile
+title: cpanfile declares Type::Tiny while the code imports Types::Standard
+updated: 2026-10-25T05:49:45Z
+---
+
+The runtime dependency declaration does not match the code.
+
+What the code does:
+- lib/WWW/ARDB/Cache.pm, lib/WWW/ARDB/Result/Item.pm, lib/WWW/ARDB/Result/Quest.pm and lib/WWW/ARDB/Result/ArcEnemy.pm all `use Types::Standard qw( Str Int Num ArrayRef HashRef Maybe )` and use those types in the `has` declarations.
+- The cpanfile declares `Type::Tiny` instead. Types::Standard is a thin layer over Type::Tiny and is a separate distribution, so the declared dependency does not pull in what the code loads.
+
+Consequence: an install that trusts the cpanfile gets Type::Tiny but not Types::Standard, and every result object construction dies with "Can't locate Types/Standard.pm".
+
+What to do:
+1. In the cpanfile, replace the `Type::Tiny` entry with `Types::Standard` and keep the alphabetical ordering of the runtime block.
+2. Check the whole cpanfile against the actual `use` statements in lib/ and bin/ — Moo, LWP::UserAgent, JSON::MaybeXS, HTTP::Request, URI, Path::Tiny, Digest::MD5, namespace::clean, MooX::Cmd, MooX::Options are the runtime set; Test::More and Capture::Tiny belong under `on test`.
+3. Do not pin a version where none is required; never write a version of '0'.
+4. Add a regression guard so this cannot drift again: a test that reads the cpanfile and asserts that every distribution named by a `use` statement in lib/ and bin/ is declared. Keep it simple and offline.
+
+Report the diff of the cpanfile and the new test; a `Changes` entry is not needed because the dependency declaration was wrong, not the behaviour.
+
+2026-10-25 05:43 Commit ae19567 auf Branch offen-2610. t/06-cpanfile.t war gegen altes cpanfile rot (Types::Standard fehlt). Suite offline 176 Tests gruen.
+
+2026-10-25 05:47 Also found: (a) CLAUDE.md und Skill www-ardb-core sagen noch 'no TTL' bzw. Type::Tiny/kein LICENSE/CLI nicht injizierbar - nach k1-k4 veraltet. (b) CLI.pm-Hilfetext ist hartcodiert; 'ardb --help' ist kein eigener Pfad. (c) Query-Parameter an unbekannte API-Endpoints werden ungefiltert gesendet (Request), nicht beruehrt.
