@@ -1,0 +1,37 @@
+---
+claimed_at: 2026-10-25T05:50:12Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:50:12Z
+created: 2026-10-21T02:08:37Z
+id: 6
+priority: low
+started: 2026-10-25T05:46:27Z
+status: done
+tags:
+- docs
+- pod
+title: bin/ardb documents only WWW_ARDB_DEBUG; two more environment variables steer
+  the behaviour
+updated: 2026-10-25T05:50:12Z
+---
+
+`bin/ardb` has an `=head1 ENVIRONMENT` section that documents exactly one variable:
+
+    WWW_ARDB_DEBUG
+
+But the code reads two more:
+
+- `WWW_ARDB_NO_CACHE` — read in `WWW::ARDB::CLI::no_cache` as the default for the `--no-cache` flag.
+- `WWW_ARDB_JSON` — read in `WWW::ARDB::CLI::json` as the default for the `--json` flag.
+
+Someone who sets `WWW_ARDB_JSON=1` gets JSON output with no way to learn it from the documentation.
+
+What to do:
+1. Extend the `=head1 ENVIRONMENT` section in `bin/ardb` with `WWW_ARDB_NO_CACHE` and `WWW_ARDB_JSON`: one line each, what it does and what its default is. Use the `=env NAME` shortcut form, one variable per block, as the POD conventions require.
+2. Check whether the same three variables are documented anywhere else (the CLI class POD, the WWW::ARDB class POD) and make the statement consistent — the CLI class already documents its `debug`, `no_cache` and `json` attributes, the binary does not.
+3. Confirm with `ardb --help` that the help text still lists the three global flags; the help text is hardcoded in `WWW::ARDB::CLI::execute` and must not drift from the real flags.
+
+Documentation only — no behaviour change, no `Changes` entry.
+
+2026-10-25 05:47 Commit f1a5097. ENVIRONMENT mit =env fuer DEBUG/NO_CACHE/JSON (Default 0). CLI.pm-POD dokumentierte alle drei bereits, WWW::ARDB-POD nennt nur WWW_ARDB_DEBUG (korrekt, dort einzig gelesen). 'ardb' ohne Argument zeigt die drei Flags (-d, -j, --no-cache), Hilfetext unveraendert; 'ardb --help' selbst zeigt den Hilfetext nicht, sondern gibt dasselbe Banner via MooX::Cmd aus (kein Eingriff). dzil test gruen, gebautes POD ok.
