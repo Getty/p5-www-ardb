@@ -1,0 +1,41 @@
+---
+claimed_at: 2026-10-25T05:49:56Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:49:56Z
+created: 2026-10-21T02:08:20Z
+id: 3
+priority: medium
+started: 2026-10-25T05:44:18Z
+status: done
+tags:
+- cli
+- testability
+title: The CLI builds its own WWW::ARDB client, so no command can be tested offline
+updated: 2026-10-25T05:49:56Z
+---
+
+`WWW::ARDB::CLI::_build_api` constructs a fresh `WWW::ARDB` instance on every access:
+
+    sub _build_api {
+        my $self = shift;
+        return WWW::ARDB->new(
+            debug     => $self->debug,
+            use_cache => !$self->no_cache,
+        );
+    }
+
+The attribute is `is => 'lazy'` with a builder, so it is already overridable — but only by reaching past the CLI: a test would have to replace the builder or override the method, and the CLI offers no constructor argument for a client.
+
+Consequence: `t/20-cli.t` cannot exercise the command classes against a mock user agent. Either it only checks argument parsing, or it reaches into the object, or it hits the live API — which is exactly what the offline fixture setup exists to prevent.
+
+What to do:
+1. Make the client injectable: an attribute on `WWW::ARDB::CLI` that, when given, is used as the client instead of building a fresh one. Keep the builder as the default path so the current behaviour is unchanged.
+2. Check how `t/20-cli.t` currently obtains its data and write a test that runs at least one command class (`items` and `item` are the interesting ones: one list, one detail) against the mock user agent / fixtures in `t/fixtures/`, and asserts on the printed output.
+3. The command classes reach the client through `$chain->[0]->api`; that path must keep working unchanged.
+
+The global flags (`--debug`, `--json`, `--no-cache`) are parsed in `around BUILDARGS` with Getopt::Long in pass_through mode — do not break that while touching the constructor.
+
+A behavioural change needs a test that pins it. Report the diff and the test names; no `Changes` entry is needed because the public behaviour of the CLI does not change.
+
+2026-10-25 05:44 Commit ab1c9f7. Befund: api ist Moo-lazy und nimmt api=>$client bereits im Konstruktor an (init_arg), BUILDARGS aendert nichts daran. Kein Codeumbau noetig, nur POD + Tests. Die neuen Tests sind darum gegen altes lib/ NICHT rot (Verhalten existierte schon); sie pinnen es. Cmd-Klassen laufen offline: items (Liste, Filter, json), item (Detail). $chain->[0]->api unveraendert.
