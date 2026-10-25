@@ -1,0 +1,34 @@
+---
+claimed_at: 2026-10-25T05:50:02Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:50:02Z
+created: 2026-10-21T02:08:26Z
+id: 4
+priority: medium
+started: 2026-10-25T05:45:06Z
+status: done
+tags:
+- cache
+title: 'The file cache never expires: the timestamp is written but never evaluated'
+updated: 2026-10-25T05:50:02Z
+---
+
+`WWW::ARDB::Cache::set` writes a `timestamp` into every cache file:
+
+    { timestamp => time(), endpoint => ..., data => ... }
+
+Nothing ever reads it. `Cache::get` returns the stored data as long as the file exists, so a response from weeks ago is served indefinitely — for the items list that means stale prices, stale recipes and stale loot tables for anyone using the library as a dependency.
+
+The cache can only be emptied by an explicit `clear_cache` call, and `WWW::ARDB::CLI` exposes no flag for it (it offers `--no-cache`, which bypasses the cache entirely instead of refreshing it).
+
+What to do:
+1. Decide on and implement a TTL: read the stored `timestamp`, compare it against the configured maximum age, and treat an expired entry as a miss (fetch, then write again).
+2. Make the maximum age configurable — an attribute on `WWW::ARDB::Cache` with a sensible default — and let `WWW::ARDB` pass it through, so a caller who wants a fresh response can ask for one without clearing the whole cache.
+3. A cache entry without a usable timestamp (older file, hand-edited, truncated) must be treated as expired, not as a hit.
+4. Write tests that pin the behaviour: an entry inside the TTL is a hit, an entry outside is a miss, and the file is rewritten after the refresh. Use the existing cache test file and a temporary cache directory; no sleeps longer than a second — write the timestamp directly into the file instead of waiting.
+5. Keep the cache key and the file layout unchanged: `<namespace>_<endpoint>` plus `_` plus md5 of the JSON-encoded parameters, file `<key>.json`.
+
+This changes what callers see, so it needs a `Changes` entry — describe the effect ("cached responses expire after N seconds instead of never"), not the implementation.
+
+2026-10-25 05:46 Commit f10fec7. Entscheidungen: Default 86400 s (1 Tag); Alter muss 0<=age<max_age sein (max_age 0 = nie Hit, Zukunfts-Timestamp = Miss); truncated/kaputtes JSON = Miss statt croak. Attribute Cache::max_age und WWW::ARDB::cache_max_age (nicht als CLI-Flag, nicht verlangt). Neue Tests gegen altes lib/ rot (Behavior: 9 Fehlschlaege), jetzt gruen; Suite 192 Tests. Hinweis: CLAUDE.md und Skill www-ardb-core nennen noch 'no TTL' - nicht angefasst (Skill ist installiert).
