@@ -1,0 +1,36 @@
+---
+claimed_at: 2026-10-25T05:49:50Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:49:50Z
+created: 2026-10-21T02:08:14Z
+id: 2
+priority: medium
+started: 2026-10-25T05:43:19Z
+status: done
+tags:
+- build
+- dist
+title: 'dzil build aborts: dist.ini has no copyright_year and LICENSE is not committed'
+updated: 2026-10-25T05:49:50Z
+---
+
+`dzil build` fails before it produces a tarball.
+
+Two causes, both in the distribution metadata:
+1. dist.ini has `[@Author::GETTY]` with `license = Perl_5` and a `copyright_holder`, but no `copyright_year`.
+2. There is no committed LICENSE file in the repository root.
+
+`[@Author::GETTY]` checks the LICENSE against license, copyright_holder and copyright_year and aborts the build when the file is missing or no longer matches. Because `Git::GatherDir` only sees tracked files, a LICENSE that is generated but not `git add`ed is invisible to the build as well.
+
+What to do:
+1. Add `copyright_year = <the year the dist was first published>` to dist.ini — look up the year of the 0.001 release from the git log, not from today's date.
+2. Run `dzil genlicense` to create the LICENSE file.
+3. `git add LICENSE` — the add is mandatory, the build gathers through git.
+4. Run `dzil build` and `dzil test` and make sure both finish cleanly.
+
+Note for the release manager: the dist.ini `$VERSION` is 0.003, which is the next unreleased version after the 0.002 release. Never copy a version back from CPAN, and never bump it in this card — a version bump is not part of the work.
+
+Do not run `dzil release`, do not tag, do not push.
+
+2026-10-25 05:44 Commit afeab74. copyright_year 2026 (0.001 vom 2026-01-05). Vorher: dzil build brach mit 'no LICENSE in the distribution' ab; jetzt dzil build + dzil test sauber (190 Tests). Kein Versions-Bump.
