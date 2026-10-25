@@ -1,0 +1,39 @@
+---
+claimed_at: 2026-10-25T05:50:07Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:50:07Z
+created: 2026-10-21T02:08:32Z
+id: 5
+priority: low
+started: 2026-10-25T05:46:22Z
+status: done
+tags:
+- cli
+- feature
+title: The list commands filter client-side; the API is never asked to filter or paginate
+updated: 2026-10-25T05:50:07Z
+---
+
+`ardb items`, `ardb quests` and `ardb enemies` fetch the complete collection and filter in Perl:
+
+    my $items = $app->api->items;
+    if ($self->search) { $items = [ grep { index(lc($_->name), $search) >= 0 } @$items ]; }
+    if ($self->type)   { $items = [ grep { $_->type && lc($_->type) eq $type } @$items ]; }
+    if ($self->rarity) { $items = [ grep { $_->rarity && lc($_->rarity) eq $rarity } @$items ]; }
+
+Three consequences:
+1. Every invocation downloads and decodes the full collection even when the caller wants three rows.
+2. The whole collection lands in the cache file, so the disk cache grows with the full dataset per endpoint.
+3. The API's own filtering and pagination are unused — `WWW::ARDB::Request` passes query parameters through, so the plumbing exists.
+
+What to do:
+1. Find out what the ardb.app API actually supports for filtering and pagination (see https://ardb.app/developers/api). Only implement what the API really offers — no speculative parameters.
+2. If the API filters server-side, add the option to the list command classes (a new MooX::Options option per supported filter) and let the request layer send it.
+3. Keep the current client-side behaviour as the fallback when the server does not support the filter, so no existing invocation changes its result.
+4. Write tests that pin the new behaviour: with a mock user agent, assert that the request carries the expected query parameter and that the response is used as it comes back — and that the old client-side path still returns the same items when the server ignores the parameter.
+5. A filter that moves to the server changes what a caller sees; it needs a `Changes` entry.
+
+If the API turns out to support no filtering at all, do not build a mechanism for it — report that on the card and close it with the finding.
+
+2026-10-25 05:46 Befund (ardb.app/developers/api, abgerufen 2026-10-25): die Listen-Endpoints /items, /quests, /arc-enemies sind ohne Query-Parameter dokumentiert; kein Filter, keine Suche, keine Pagination ('array containing all items with a basic subset of their data'). Die Doku warnt zudem, Endpoints/Shape koennten sich jederzeit aendern. Darum kein Mechanismus gebaut, kein Code, kein Changes-Eintrag: client-seitiges Filtern bleibt der einzige Weg. Karte mit diesem Befund zu schliessen (Freigabe/done beim Release-Manager).
