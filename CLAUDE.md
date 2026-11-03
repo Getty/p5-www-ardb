@@ -67,10 +67,11 @@ the known rough edges.
 
 ## State of the code
 
-- The library, the result classes and the six CLI commands are implemented and the
-  suite is green — `prove -lr t/` runs ten files offline against `t/fixtures/`.
-- The cache stores a `timestamp` but evaluates **no TTL**: a cached response is
-  returned until `clear_cache`.
-- The `cpanfile` declares `Type::Tiny` while the code imports `Types::Standard`;
-  `dist.ini` has no `copyright_year` and no `LICENSE` is committed.
+- The library, the result classes and the six CLI commands are implemented —
+  `prove -lr t/` runs offline against `t/fixtures/`.
+- Cached responses expire after `max_age` seconds (default 86400); an entry
+  without a usable timestamp counts as expired. `cache_max_age` on the client
+  chooses the age, `0` always fetches fresh.
+- The `cpanfile` declares `Types::Standard`, which the code imports; `dist.ini`
+  carries `copyright_year` and `LICENSE` is committed.
 - The list commands filter client-side; the API is not asked to filter.

@@ -7,8 +7,8 @@ until they load. This file adds what is true only here, and wins where it differ
 
 ## What this repo is
 
-Perl client for the ARC Raiders Database API (ardb.app). The repo carries 0.003, the next
-unreleased version after the last CPAN release 0.002.
+Perl client for the ARC Raiders Database API (ardb.app). Every module carries `our $VERSION`;
+the release bundle rewrites and bumps it.
 
 ## Agent team
 

@@ -87,15 +87,16 @@ and no retry. `WWW::ARDB` has no `ua` injection point of its own: the attribute 
 
 ## The cache layer
 
-- Directory: `~/.cache/ardb` on Linux, `%LOCALAPPDATA%\ardb` elsewhere, overridable
-  via the `cache_dir` attribute.
+- Directory: `$XDG_CACHE_HOME/ardb` (default `~/.cache/ardb`) on Unix,
+  `%LOCALAPPDATA%\ardb` on Windows, overridable via the `cache_dir` attribute.
 - Key: `<namespace>_<endpoint>` plus `_` plus `md5_hex` of the JSON-encoded
   parameters. `namespace` defaults to `default`.
 - File: `<key>.json`, containing `{timestamp, endpoint, data}`.
-- **There is no TTL.** The timestamp is written but never evaluated — a cached
-  response is returned forever until `clear_cache` is called. This is a known
-  rough edge, not an oversight to be silently "fixed"; changing it changes what
-  callers see.
+- **TTL.** `Cache::get` serves an entry only while `time - timestamp < max_age`.
+  `max_age` defaults to 86400 seconds; the client passes `cache_max_age` through;
+  `0` never serves from the cache. An entry without a usable timestamp
+  (unreadable, truncated, hand-edited) counts as expired. Changing the default
+  changes what callers see.
 - `use_cache` can be switched off per client (`WWW_ARDB_NO_CACHE`), and the CLI
   exposes it as `--no-cache`.
 
@@ -121,17 +122,11 @@ instead of being swallowed by the application class.
 
 Known, recorded, not to be "cleaned up" as a side effect of unrelated work:
 
-- The `cpanfile` names **`Type::Tiny`**, but the code imports **`Types::Standard`**
-  (`Cache.pm`, `Result/Item.pm`, `Result/Quest.pm`, `Result/ArcEnemy.pm`). The
-  declared runtime dependency is wrong.
-- `dist.ini` has no `copyright_year` and there is no committed `LICENSE`.
 - `WWW::ARDB::CLI::_build_api` creates a **fresh** `WWW::ARDB` — the CLI offers no
   way to inject a client, so the CLI cannot be tested against a mock without
   changing that.
 - `WWW::ARDB::Request` builds query parameters via `query_form`; a parameter the
   API does not know is sent anyway.
-- The `bin/ardb` POD documents only `WWW_ARDB_DEBUG`; `WWW_ARDB_NO_CACHE` and
-  `WWW_ARDB_JSON` are read by the code but undocumented.
 
 ## Vocabulary
 
@@ -146,9 +141,10 @@ Known, recorded, not to be "cleaned up" as a side effect of unrelated work:
 
 ## Tests
 
-`t/` holds ten files: `00-load.t`, `01-cache.t`, `02-request.t`, one file per
-result class (`03`–`05`), `10-api.t`, `11-api-fixtures.t`,
-`12-cache-integration.t` and `20-cli.t`. `t/fixtures/` holds the API payloads the
+`t/` holds `00-load.t`, `01-cache.t`, `02-request.t`, one file per result class
+(`03`–`05`), `06-cpanfile.t` (every module the code loads is declared in the
+`cpanfile`), `10-api.t`, `11-api-fixtures.t`, `12-cache-integration.t` and
+`20-cli.t`. `t/fixtures/` holds the API payloads the
 tests read; `t/lib/` holds the test helpers.
 
 ```bash
@@ -161,7 +157,9 @@ filter, a changed cache key — needs a test that pins it.
 
 ## Distribution conventions
 
-`dist.ini` uses `[@Author::GETTY]`, `bin/`, `lib/`, `t/` and a `Changes` file in
-CPAN format with a `{{$NEXT}}` section. Every module carries its own
-`our $VERSION` — the *next unreleased* version, currently `0.003` after the
-`0.002` release. Dependencies live in `cpanfile`, not in `dist.ini`.
+`dist.ini` carries the header (name, author, license, copyright holder and year)
+plus `[@Author::GETTY]`; `LICENSE` is committed. `Changes` is in CPAN format with
+a `{{$NEXT}}` section. Every module under `lib/` and `bin/ardb` carries
+`our $VERSION`; the bundle writes it at release through
+`[RewriteVersion::Transitional]` and `[BumpVersionAfterRelease]`. Dependencies
+live in `cpanfile` (read through `[Prereqs::FromCPANfile]`), not in `dist.ini`.
