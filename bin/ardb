@@ -3,6 +3,8 @@
 # PODNAME: ardb
 # ABSTRACT: Command-line interface for ARC Raiders Database (ardb.app)
 
+our $VERSION = '0.003';
+
 use strict;
 use warnings;
 use WWW::ARDB::CLI;
